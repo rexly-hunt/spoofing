@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Speech + Redirect - Firefox Support</title>
+<title>Speech + Delayed Redirect</title>
 <style>
   body {
     font-family: 'Arial', sans-serif;
-    direction: rtl;
     text-align: center;
     padding: 50px;
   }
@@ -16,142 +15,55 @@
     font-size: 20px;
     cursor: pointer;
   }
+</style>
 </head>
 <body>
 
-<h2>🔊 Klik untuk Buka Google</h2>
-<button id="speechBtn">📞 CALL CENTER GOOGLE</button>
-<div id="status" class="status">🎙️ Memainkan suara...</div>
-<div id="fallback" class="fallback-msg"></div>
+<h2>CLICK TO GOOGLE</h2>
+<button id="speechBtn">CLICK CALL CENTER GOOGLE</button>
 
 <script>
 const btn = document.getElementById('speechBtn');
-const statusDiv = document.getElementById('status');
-const fallbackDiv = document.getElementById('fallback');
-
-// Pesan yang akan dibacakan
 const text = "Hello, google.com is still experiencing an error or maintenance. Please visit the support center or call our call center at plus five two";
 
-// Fungsi untuk menunggu voices tersedia (khusus Firefox)
+// Fungsi tunggu voices (penting untuk Firefox)
 function waitForVoices() {
   return new Promise((resolve) => {
     let voices = speechSynthesis.getVoices();
-    
     if (voices.length > 0) {
       resolve(voices);
     } else {
-      // Firefox butuh event voiceschanged
       speechSynthesis.onvoiceschanged = () => {
-        voices = speechSynthesis.getVoices();
-        resolve(voices);
+        resolve(speechSynthesis.getVoices());
       };
-      
-      // Fallback timeout 1 detik jika event tidak fire
-      setTimeout(() => {
-        if (speechSynthesis.getVoices().length === 0) {
-          resolve([]); // Return empty array
-        }
-      }, 1000);
+      setTimeout(() => resolve([]), 1000);
     }
   });
 }
 
-// Fungsi utama text-to-speech
-async function playSpeech() {
-  // Cek support TTS
-  if (!('speechSynthesis' in window)) {
-    console.log('TTS tidak didukung');
-    return false;
-  }
-
-  try {
-    // Tunggu voices (penting untuk Firefox)
+btn.addEventListener('click', async () => {
+  
+  // Cek dan jalankan speech
+  if ('speechSynthesis' in window) {
     const voices = await waitForVoices();
     
     const utter = new SpeechSynthesisUtterance(text);
-    
-    // Setting bahasa
     utter.lang = 'en-US';
-    utter.rate = 0.9;  // Sedikit lebih lambat agar jelas
-    utter.pitch = 1;
     
-    // Cari suara Inggris yang tersedia
     if (voices.length > 0) {
-      const enVoice = voices.find(v => 
-        v.lang && (v.lang.startsWith('en') || v.lang.startsWith('en-US'))
-      );
-      
-      if (enVoice) {
-        utter.voice = enVoice;
-        console.log('Voice dipilih:', enVoice.name);
-      } else {
-        console.log('Voice English tidak ditemukan, menggunakan default');
-      }
-    } else {
-      console.log('Tidak ada voices tersedia, menggunakan default browser');
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utter.voice = enVoice;
     }
     
-    // Event handlers
-    utter.onstart = () => {
-      console.log('Speech started');
-      statusDiv.classList.add('show');
-    };
-    
-    utter.onend = () => {
-      console.log('Speech ended');
-      statusDiv.classList.remove('show');
-    };
-    
-    utter.onerror = (e) => {
-      console.error('Speech error:', e);
-      statusDiv.classList.remove('show');
-    };
-    
-    // Mainkan suara
     speechSynthesis.speak(utter);
-    return true;
-    
-  } catch (error) {
-    console.error('Error TTS:', error);
-    return false;
-  }
-}
-
-// Event listener tombol
-btn.addEventListener('click', async () => {
-  // Nonaktifkan tombol sementara
-  btn.disabled = true;
-  btn.textContent = '⏳ Memproses...';
-  
-  // Coba mainkan suara
-  const speechSuccess = await playSpeech();
-  
-  // Tampilkan pesan fallback jika TTS gagal
-  if (!speechSuccess) {
-    fallbackDiv.textContent = '⚠️ Mode suara tidak tersedia, melanjutkan ke Google...';
   }
   
-  // Redirect setelah delay (berjalan meski speech gagal)
+  // Redirect setelah 1.5 detik
   setTimeout(() => {
     window.location.href = "https://google.com";
-  }, 1500); // 1.5 detik (lebih lama untuk Firefox)
-});
-
-// Pre-load voices saat halaman load (untuk Firefox)
-if ('speechSynthesis' in window) {
-  // Trigger load voices
-  speechSynthesis.getVoices();
+  }, 1500);
   
-  // Firefox butuh ini untuk menginisialisasi
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = () => {
-      console.log('Voices loaded:', speechSynthesis.getVoices().length);
-    };
-  }
-}
-
-console.log('Browser:', navigator.userAgent);
-console.log('Speech support:', 'speechSynthesis' in window);
+});
 </script>
 
 </body>
