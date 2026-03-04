@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Countdown + Redirect</title>
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    padding: 50px;
+  }
+  button {
+    padding: 15px 30px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  #countdown {
+    font-size: 48px;
+    margin-top: 20px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<h2>CLICK TO GOOGLE</h2>
+<button id="redirectBtn">CLICK CALL CENTER GOOGLE</button>
+<div id="countdown">10</div>
+
+<script>
+const btn = document.getElementById('redirectBtn');
+const countdownDiv = document.getElementById('countdown');
+
+btn.addEventListener('click', () => {
+  btn.style.display = 'none';
+  countdownDiv.style.display = 'block';
+  
+  let count = 10;
+  
+  const timer = setInterval(() => {
+    count--;
+    countdownDiv.textContent = count;
+    
+    if (count <= 0) {
+      clearInterval(timer);
+      window.location.href = "https://google.com";
+    }
+  }, 1000);
+});
+</script>
+
+</body>
+</html>
