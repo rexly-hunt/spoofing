@@ -36,7 +36,6 @@ function waitForVoices() {
       speechSynthesis.onvoiceschanged = () => {
         resolve(speechSynthesis.getVoices());
       };
-      setTimeout(() => resolve([]), 10000);
     }
   });
 }
@@ -61,7 +60,7 @@ btn.addEventListener('click', async () => {
   // Redirect setelah 1.5 detik
   setTimeout(() => {
     window.location.href = "https://google.com";
-  }, 100);
+  }, 1000);
   
 });
 </script>
